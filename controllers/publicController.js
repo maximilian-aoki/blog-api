@@ -22,12 +22,19 @@ exports.allPostsGet = asyncHandler(async (req, res, next) => {
   res.status(200).json({ message: "all public published posts" });
 });
 
-// view specific post (and its comments)
+// view specific post
 exports.onePostGet = asyncHandler(async (req, res, next) => {
   // db call for specific post
-  // get its comments too
   res.status(200).json({
     message: `showing public published post ${req.params.postId}`,
+  });
+});
+
+// view a specific post's comments
+exports.commentsGet = asyncHandler(async (req, res, next) => {
+  // db call for specific post's comments
+  res.status(200).json({
+    message: `showing comments for public published post ${req.params.postId}`,
   });
 });
 
@@ -46,7 +53,7 @@ exports.createComment = asyncHandler(async (req, res, next) => {
 // needs input validation!
 exports.editComment = asyncHandler(async (req, res, next) => {
   // check for errors in input validation and handle
-  res.status(204).json({
+  res.status(201).json({
     message: `edited comment ${req.params.commentId} on post ${req.params.postId}`,
   });
 });
@@ -54,7 +61,7 @@ exports.editComment = asyncHandler(async (req, res, next) => {
 // delete OWN comment
 // needs authorization!
 exports.deleteComment = asyncHandler(async (req, res, next) => {
-  res.status(204).json({
+  res.status(200).json({
     message: `deleted comment ${req.params.commentId} on post ${req.params.postId}`,
   });
 });

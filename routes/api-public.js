@@ -3,6 +3,8 @@ const router = express.Router();
 
 const publicController = require("../controllers/publicController");
 
+// AUTHENTICATION ROUTES
+
 // sign-up page (GET, POST)
 router
   .route("/sign-up")
@@ -15,14 +17,21 @@ router
   .get(publicController.loginGet)
   .post(publicController.loginPost);
 
+// BLOG ROUTES
+
 // view all blog posts (GET) [all-access]
 router.get("/posts", publicController.allPostsGet);
 
 // view specific blog post (GET) [all-access]
 router.get("/posts/:postId", publicController.onePostGet);
 
-// add OWN comment (POST) [users only]
-router.post("/posts/:postId/comments", publicController.createComment);
+// COMMENT ROUTES
+
+// view or add OWN comments to specific blog post (GET, POST) [all-access, users only]
+router
+  .route("/posts/:postId/comments")
+  .get(publicController.commentsGet)
+  .post(publicController.createComment);
 
 // edit OWN comment (PUT) [users only]
 router.put(
