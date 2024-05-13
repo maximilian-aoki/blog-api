@@ -5,13 +5,13 @@ const publicController = require("../controllers/publicController");
 
 // AUTHENTICATION ROUTES
 
-// sign-up page (GET, POST)
+// sign-up page (GET, POST) [all-access]
 router
   .route("/sign-up")
   .get(publicController.signupGet)
   .post(publicController.signupPost);
 
-// log-in page (GET, POST)
+// log-in page (GET, POST) [all-access]
 router
   .route("/log-in")
   .get(publicController.loginGet)
@@ -27,7 +27,7 @@ router.get("/posts/:postId", publicController.onePostGet);
 
 // COMMENT ROUTES
 
-// view or add OWN comments to specific blog post (GET, POST) [all-access, users only]
+// view or add OWN comments to specific blog post (GET all-access, POST users-only)
 router
   .route("/posts/:postId/comments")
   .get(publicController.commentsGet)

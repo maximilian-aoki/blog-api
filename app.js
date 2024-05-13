@@ -3,16 +3,26 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const db = require("./db/mongoose");
+
+const cors = require("cors");
 
 const apiPublicRouter = require("./routes/api-public");
 const apiPrivateRouter = require("./routes/api-private");
 
 const app = express();
+db.connectDB();
 
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
 // ROUTES
 app.use("/api/public/", apiPublicRouter);

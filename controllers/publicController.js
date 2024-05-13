@@ -5,7 +5,10 @@ exports.signupGet = (req, res, next) =>
   res.status(200).json({ message: "get public signup page" });
 
 exports.signupPost = asyncHandler(async (req, res, next) =>
-  res.status(201).json({ message: "added new public user" })
+  res.status(201).json({
+    message: "added new public user",
+    body: req.body,
+  })
 );
 
 // log-in
@@ -13,7 +16,10 @@ exports.loginGet = (req, res, next) =>
   res.status(200).json({ message: "get public login page" });
 
 exports.loginPost = asyncHandler(async (req, res, next) =>
-  res.status(200).json({ message: "successful public login" })
+  res.status(200).json({
+    message: "successful public login",
+    body: req.body,
+  })
 );
 
 // view all posts (published ones only!)
@@ -45,6 +51,7 @@ exports.createComment = asyncHandler(async (req, res, next) => {
   // check for errors in input validation and handle
   res.status(201).json({
     message: `created new comment on post ${req.params.postId}`,
+    body: req.body,
   });
 });
 
@@ -55,6 +62,7 @@ exports.editComment = asyncHandler(async (req, res, next) => {
   // check for errors in input validation and handle
   res.status(201).json({
     message: `edited comment ${req.params.commentId} on post ${req.params.postId}`,
+    body: req.body,
   });
 });
 

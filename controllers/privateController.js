@@ -6,7 +6,10 @@ exports.loginGet = (req, res, next) =>
 
 exports.loginPost = (req, res, next) =>
   // validate JWT
-  res.status(200).json({ message: "successful login of admin" });
+  res.status(200).json({
+    message: "successful login of admin",
+    body: req.body,
+  });
 
 // view all posts (published, unpublished)
 // needs authorization!
@@ -25,7 +28,10 @@ exports.createPostGet = (req, res, next) => {
 // needs authorization!
 exports.createPostPost = asyncHandler(async (req, res, next) => {
   // create a new post in db
-  res.status(201).json({ message: "created new admin post" });
+  res.status(201).json({
+    message: "created new admin post",
+    body: req.body,
+  });
 });
 
 // view a specific post
@@ -39,7 +45,10 @@ exports.onePostGet = asyncHandler(async (req, res, next) => {
 // needs authorization!
 exports.onePostUpdate = asyncHandler(async (req, res, next) => {
   // update specific post in db
-  res.status(201).json({ message: `edited admin post ${req.params.postId}` });
+  res.status(201).json({
+    message: `edited admin post ${req.params.postId}`,
+    body: req.body,
+  });
 });
 
 // delete a specific post
@@ -64,6 +73,7 @@ exports.createComment = asyncHandler(async (req, res, next) => {
   // check for errors in input validation and handle
   res.status(201).json({
     message: `created new admin comment on post ${req.params.postId}`,
+    body: req.body,
   });
 });
 
@@ -74,6 +84,7 @@ exports.editComment = asyncHandler(async (req, res, next) => {
   // check for errors in input validation and handle
   res.status(201).json({
     message: `edited admin comment ${req.params.commentId} on post ${req.params.postId}`,
+    body: req.body,
   });
 });
 
