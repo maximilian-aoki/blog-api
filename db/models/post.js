@@ -33,7 +33,7 @@ postSchema.virtual("privateUrl").get(function () {
   return `/api/private/posts/${this.id}`;
 });
 
-commentSchema.virtual("date").get(function () {
+postSchema.virtual("date").get(function () {
   return DateTime.fromJSDate(this.createdAt).toLocaleString(DateTime.DATE_MED);
 });
 
