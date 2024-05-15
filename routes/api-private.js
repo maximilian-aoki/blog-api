@@ -5,11 +5,8 @@ const privateController = require("../controllers/privateController");
 
 // AUTHENTICATION ROUTES
 
-// log-in page (GET, POST) [all-access]
-router
-  .route("/log-in")
-  .get(privateController.loginGet)
-  .post(privateController.loginPost);
+// log-in page (POST) [all-access]
+router.post("/log-in", privateController.loginPost);
 
 // POST ROUTES
 

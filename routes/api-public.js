@@ -5,17 +5,11 @@ const publicController = require("../controllers/publicController");
 
 // AUTHENTICATION ROUTES
 
-// sign-up page (GET, POST) [all-access]
-router
-  .route("/sign-up")
-  .get(publicController.signupGet)
-  .post(publicController.signupPost);
+// sign-up page (POST) [all-access]
+router.post("/sign-up", publicController.signupPost);
 
-// log-in page (GET, POST) [all-access]
-router
-  .route("/log-in")
-  .get(publicController.loginGet)
-  .post(publicController.loginPost);
+// log-in page (POST) [all-access]
+router.post("/log-in", publicController.loginPost);
 
 // BLOG ROUTES
 

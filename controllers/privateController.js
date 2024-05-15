@@ -1,9 +1,6 @@
 const asyncHandler = require("express-async-handler");
 
-// log-in
-exports.loginGet = (req, res, next) =>
-  res.status(200).json({ message: "get private login page" });
-
+// try to log-in
 exports.loginPost = (req, res, next) =>
   // validate JWT
   res.status(200).json({
