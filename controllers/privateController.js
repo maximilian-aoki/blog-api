@@ -1,94 +1,357 @@
+require("dotenv").config();
 const asyncHandler = require("express-async-handler");
 
-// try to log-in
-exports.loginPost = (req, res, next) =>
-  // validate JWT
-  res.status(200).json({
-    message: "successful login of admin",
-    body: req.body,
-  });
+const vd = require("../middleware/validator");
+const bcrypt = require("bcryptjs");
+const { matchedData, validationResult } = require("express-validator");
 
-// view all posts (published, unpublished)
-// needs authorization!
-exports.allPostsGet = asyncHandler(async (req, res, next) => {
-  // db call for all published/unpublished posts
-  res.status(200).json({ message: "all admin posts" });
-});
+const jwt = require("jsonwebtoken");
+const { verifyAdminToken } = require("../middleware/authenticator");
 
-// new post form
-// needs authorization!
-exports.createPostGet = (req, res, next) => {
-  res.status(200).json({ message: "new admin post form" });
-};
+const { User } = require("../db/models/user");
+const Post = require("../db/models/post");
+const Comment = require("../db/models/comment");
 
-// create a new post
-// needs authorization!
-exports.createPostPost = asyncHandler(async (req, res, next) => {
-  // create a new post in db
-  res.status(201).json({
-    message: "created new admin post",
-    body: req.body,
-  });
-});
+// try to log-in (COMPLETED)
+exports.loginPost = [
+  vd.pipe([vd.validateEmail, vd.validatePassword]),
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (errors.errors.length) {
+      return res.status(400).json({
+        error: "user input validation failed",
+        validationErrors: errors.errors.map((errorObj) => ({
+          name: errorObj.path,
+          msg: errorObj.msg,
+        })),
+        postVals: {
+          email: req.body.email,
+          password: req.body.password,
+        },
+      });
+    }
 
-// view a specific post
-// needs authorization!
-exports.onePostGet = asyncHandler(async (req, res, next) => {
-  // get specific post from db
-  res.status(200).json({ message: `viewing admin post ${req.params.postId}` });
-});
+    const validatedData = matchedData(req);
+    const user = await User.findOne({
+      email: validatedData.email,
+      isAdmin: true,
+    }).exec();
+    if (!user) {
+      return res.status(401).json({
+        error: "could not find admin user",
+        postVals: {
+          email: req.body.email,
+          password: req.body.password,
+        },
+      });
+    }
 
-// edit a specific post
-// needs authorization!
-exports.onePostUpdate = asyncHandler(async (req, res, next) => {
-  // update specific post in db
-  res.status(201).json({
-    message: `edited admin post ${req.params.postId}`,
-    body: req.body,
-  });
-});
+    const bcryptMatch = await bcrypt.compare(
+      validatedData.password,
+      user.password
+    );
+    if (!bcryptMatch) {
+      return res.status(401).json({
+        error: "wrong password",
+        postVals: {
+          email: req.body.email,
+          password: req.body.password,
+        },
+      });
+    }
 
-// delete a specific post
-// needs authorization!
-exports.onePostDelete = asyncHandler(async (req, res, next) => {
-  // delete a specific post in db
-  res.status(200).json({ message: `deleted admin post ${req.params.postId}` });
-});
+    jwt.sign(
+      { user },
+      process.env.JWT_SECRET,
+      { expiresIn: 60 * 60 },
+      (err, token) => {
+        if (err) {
+          return res.status(500).json({ error: err });
+        }
+        res.status(200).json({
+          message: "successful admin login",
+          token,
+        });
+      }
+    );
+  }),
+];
 
-// view a specific post's comments
-exports.commentsGet = asyncHandler(async (req, res, next) => {
-  // db call for specific post's comments
-  res.status(200).json({
-    message: `showing comments for admin post ${req.params.postId}`,
-  });
-});
+// view all posts (published, unpublished) (COMPLETED)
+exports.allPostsGet = [
+  verifyAdminToken,
+  asyncHandler(async (req, res, next) => {
+    const allPosts = await Post.find({
+      "author.email": req.user.user.email,
+    }).exec();
+    res.status(200).json({
+      message: "all admin posts",
+      allPosts,
+    });
+  }),
+];
 
-// create OWN comment
-// needs authorization!
-// needs input validation!
-exports.createComment = asyncHandler(async (req, res, next) => {
-  // check for errors in input validation and handle
-  res.status(201).json({
-    message: `created new admin comment on post ${req.params.postId}`,
-    body: req.body,
-  });
-});
+// new post form (COMPLETED)
+exports.createPostGet = [
+  verifyAdminToken,
+  (req, res, next) => {
+    res.status(200).json({ message: "authorized to create new post" });
+  },
+];
 
-// edit OWN comment
-// needs authorization!
-// needs input validation!
-exports.editComment = asyncHandler(async (req, res, next) => {
-  // check for errors in input validation and handle
-  res.status(201).json({
-    message: `edited admin comment ${req.params.commentId} on post ${req.params.postId}`,
-    body: req.body,
-  });
-});
+// create the new post (COMPLETED)
+exports.createPostPost = [
+  verifyAdminToken,
+  vd.pipe([
+    vd.validateTitle,
+    vd.validateOverview,
+    vd.validateText,
+    vd.validateIsPublished,
+  ]),
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (errors.errors.length) {
+      return res.status(400).json({
+        error: "user input validation failed",
+        validationErrors: errors.errors.map((errorObj) => ({
+          name: errorObj.path,
+          msg: errorObj.msg,
+        })),
+        postVals: {
+          title: req.body.title,
+          overview: req.body.overview,
+          text: req.body.text,
+          isPublished: req.body.isPublished,
+        },
+      });
+    }
 
-// delete OWN comment
-// needs authorization!
-exports.deleteComment = asyncHandler(async (req, res, next) => {
-  res.status(200).json({
-    message: `deleted comment ${req.params.commentId} on post ${req.params.postId}`,
-  });
-});
+    const validatedData = matchedData(req);
+    const newPost = await Post.create({
+      title: validatedData.title,
+      overview: validatedData.overview,
+      text: validatedData.text,
+      isPublished: validatedData.isPublished,
+      author: {
+        _id: req.user.user._id,
+        fullName: req.user.user.fullName,
+        email: req.user.user.email,
+        password: req.user.user.password,
+        isAdmin: req.user.user.isAdmin,
+      },
+    });
+
+    res.status(201).json({
+      message: "created new admin post",
+      newPost,
+    });
+  }),
+];
+
+// view a specific post OR get info to edit post (COMPLETED)
+exports.onePostGet = [
+  verifyAdminToken,
+  asyncHandler(async (req, res, next) => {
+    const post = await Post.findById(req.params.postId).exec();
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+    res.status(200).json({
+      message: `info for admin post ${post.id}`,
+      post,
+    });
+  }),
+];
+
+// edit a specific post (COMPLETED)
+exports.onePostUpdate = [
+  verifyAdminToken,
+  vd.pipe([
+    vd.validateTitle,
+    vd.validateOverview,
+    vd.validateText,
+    vd.validateIsPublished,
+  ]),
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (errors.errors.length) {
+      return res.status(400).json({
+        error: "user input validation failed",
+        validationErrors: errors.errors.map((errorObj) => ({
+          name: errorObj.path,
+          msg: errorObj.msg,
+        })),
+        postVals: {
+          title: req.body.title,
+          overview: req.body.overview,
+          text: req.body.text,
+          isPublished: req.body.isPublished,
+        },
+      });
+    }
+
+    const post = await Post.findById(req.params.postId).exec();
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+
+    const validatedData = matchedData(req);
+    post.title = validatedData.title;
+    post.overview = validatedData.overview;
+    post.text = validatedData.text;
+    post.isPublished = validatedData.isPublished;
+
+    await post.save();
+
+    res.status(201).json({
+      message: `edited admin post ${req.params.postId}`,
+      post,
+    });
+  }),
+];
+
+// delete a specific post (COMPLETED)
+exports.onePostDelete = [
+  verifyAdminToken,
+  asyncHandler(async (req, res, next) => {
+    const post = await Post.findById(req.params.postId).exec();
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+
+    await Post.deleteOne({ _id: post._id });
+
+    res.status(200).json({
+      message: `deleted admin post ${req.params.postId}`,
+    });
+  }),
+];
+
+// view a specific post's comments (COMPLETED)
+exports.commentsGet = [
+  verifyAdminToken,
+  asyncHandler(async (req, res, next) => {
+    const post = await Post.findById(req.params.postId).exec();
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+    const allComments = await Comment.find({ post: req.params.postId }).exec();
+    res.status(200).json({
+      message: `showing comments for admin post ${req.params.postId}`,
+      allComments,
+    });
+  }),
+];
+
+// create OWN comment (COMPLETED)
+exports.createComment = [
+  verifyAdminToken,
+  vd.pipe([vd.validateText]),
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (errors.errors.length) {
+      return res.status(400).json({
+        error: "user input validation failed",
+        validationErrors: errors.errors.map((errorObj) => ({
+          name: errorObj.path,
+          msg: errorObj.msg,
+        })),
+        postVals: {
+          text: req.body.text,
+        },
+      });
+    }
+
+    const post = await Post.findById(req.params.postId).exec();
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+
+    const validatedData = matchedData(req);
+    const newComment = await Comment.create({
+      text: validatedData.text,
+      author: {
+        _id: req.user.user._id,
+        fullName: req.user.user.fullName,
+        email: req.user.user.email,
+        password: req.user.user.password,
+        isAdmin: req.user.user.isAdmin,
+      },
+      post: post,
+    });
+
+    res.status(201).json({
+      message: `created new admin comment on post ${req.params.postId}`,
+      newComment,
+    });
+  }),
+];
+
+// edit OWN comment (COMPLETED)
+exports.editComment = [
+  verifyAdminToken,
+  vd.pipe([vd.validateText]),
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (errors.errors.length) {
+      return res.status(400).json({
+        error: "user input validation failed",
+        validationErrors: errors.errors.map((errorObj) => ({
+          name: errorObj.path,
+          msg: errorObj.msg,
+        })),
+        postVals: {
+          text: req.body.text,
+        },
+      });
+    }
+
+    const post = await Post.findById(req.params.postId).exec();
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+
+    const comment = await Comment.findById(req.params.commentId).exec();
+    if (
+      !comment ||
+      comment.author._id.toString() !== req.user.user._id.toString()
+    ) {
+      return res.status(401).json({
+        error: "unauthorized",
+        redirect: `/posts`,
+      });
+    }
+
+    const validatedData = matchedData(req);
+    comment.text = validatedData.text;
+    await comment.save();
+
+    res.status(201).json({
+      message: `edited admin comment ${req.params.commentId} on post ${req.params.postId}`,
+      comment,
+    });
+  }),
+];
+
+// delete ANY comment (COMPLETED)
+exports.deleteComment = [
+  verifyAdminToken,
+  asyncHandler(async (req, res, next) => {
+    const post = await Post.findById(req.params.postId).exec();
+
+    if (!post) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+
+    const comment = await Comment.findById(req.params.commentId).exec();
+    if (!comment) {
+      return res.status(404).json({ error: "could not find resource" });
+    }
+
+    await Comment.deleteOne({ _id: comment._id });
+
+    res.status(200).json({
+      message: `admin has deleted comment ${req.params.commentId} on post ${req.params.postId}`,
+    });
+  }),
+];

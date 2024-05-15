@@ -1,10 +1,12 @@
 require("dotenv").config();
 const asyncHandler = require("express-async-handler");
+
 const vd = require("../middleware/validator");
 const bcrypt = require("bcryptjs");
 const { matchedData, validationResult } = require("express-validator");
+
 const jwt = require("jsonwebtoken");
-const verifyToken = require("../middleware/authenticator");
+const { verifyToken } = require("../middleware/authenticator");
 
 const { User } = require("../db/models/user");
 const Post = require("../db/models/post");

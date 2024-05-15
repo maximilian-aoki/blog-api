@@ -19,7 +19,7 @@ router
   .get(privateController.createPostGet)
   .post(privateController.createPostPost);
 
-// view post (GET) [admin only]
+// view post or get post info (GET) [admin only]
 router.get("/posts/:postId", privateController.onePostGet);
 
 // edit post (PUT) [admin only]

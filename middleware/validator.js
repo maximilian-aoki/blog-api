@@ -25,6 +25,11 @@ validator.validateTitle = body("title")
   .exists()
   .isLength({ min: 1 })
   .withMessage("must include title");
+validator.validateOverview = body("overview")
+  .trim()
+  .exists()
+  .isLength({ min: 1 })
+  .withMessage("must include title");
 validator.validateText = body("text")
   .trim()
   .exists()
