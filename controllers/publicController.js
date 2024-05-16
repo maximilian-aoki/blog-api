@@ -153,7 +153,9 @@ exports.commentsGet = asyncHandler(async (req, res, next) => {
   if (!post || post.isPublished === false) {
     return res.status(404).json({ error: "could not find resource" });
   }
-  const allComments = await Comment.find({ post: req.params.postId }).exec();
+  const allComments = await Comment.find({ post: req.params.postId })
+    .sort({ createdAt: -1 })
+    .exec();
   res.status(200).json({
     message: `showing comments for public published post ${req.params.postId}`,
     allComments,
