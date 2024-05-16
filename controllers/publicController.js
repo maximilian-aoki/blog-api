@@ -147,7 +147,9 @@ exports.onePostGet = asyncHandler(async (req, res, next) => {
 
 // view a specific post's comments (COMPLETED)
 exports.commentsGet = asyncHandler(async (req, res, next) => {
-  const post = await Post.findById(req.params.postId).exec();
+  const post = await Post.findById(req.params.postId)
+    .sort({ createdAt: -1 })
+    .exec();
   if (!post || post.isPublished === false) {
     return res.status(404).json({ error: "could not find resource" });
   }

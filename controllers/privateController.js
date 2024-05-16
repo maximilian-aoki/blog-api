@@ -231,7 +231,9 @@ exports.onePostDelete = [
 exports.commentsGet = [
   verifyAdminToken,
   asyncHandler(async (req, res, next) => {
-    const post = await Post.findById(req.params.postId).exec();
+    const post = await Post.findById(req.params.postId)
+      .sort({ createdAt: -1 })
+      .exec();
     if (!post) {
       return res.status(404).json({ error: "could not find resource" });
     }
