@@ -119,8 +119,8 @@ exports.loginPost = [
           message: "successful public login",
           token,
           user: {
-            _id: req.user.user._id,
-            name: req.user.user.fullName,
+            _id: user._id,
+            name: user.fullName,
           },
         });
       }
@@ -130,7 +130,9 @@ exports.loginPost = [
 
 // view all posts (published ones only!) (COMPLETED)
 exports.allPostsGet = asyncHandler(async (req, res, next) => {
-  const allPublicPosts = await Post.find({ isPublished: true }).exec();
+  const allPublicPosts = await Post.find({ isPublished: true })
+    .sort({ createdAt: -1 })
+    .exec();
   res.status(200).json({
     message: "all public published posts",
     allPublicPosts,

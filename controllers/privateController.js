@@ -72,8 +72,8 @@ exports.loginPost = [
           message: "successful admin login",
           token,
           user: {
-            _id: req.user.user._id,
-            name: req.user.user.fullName,
+            _id: user._id,
+            name: user.fullName,
           },
         });
       }
@@ -87,7 +87,9 @@ exports.allPostsGet = [
   asyncHandler(async (req, res, next) => {
     const allPosts = await Post.find({
       "author.email": req.user.user.email,
-    }).exec();
+    })
+      .sort({ isPublished: 1, createdAt: -1 })
+      .exec();
     res.status(200).json({
       message: "all admin posts",
       allPosts,
