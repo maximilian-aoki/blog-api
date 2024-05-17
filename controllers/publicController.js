@@ -118,6 +118,10 @@ exports.loginPost = [
         res.status(200).json({
           message: "successful public login",
           token,
+          user: {
+            _id: req.user.user._id,
+            name: req.user.user.fullName,
+          },
         });
       }
     );

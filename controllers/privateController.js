@@ -71,6 +71,10 @@ exports.loginPost = [
         res.status(200).json({
           message: "successful admin login",
           token,
+          user: {
+            _id: req.user.user._id,
+            name: req.user.user.fullName,
+          },
         });
       }
     );
