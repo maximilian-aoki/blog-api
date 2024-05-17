@@ -88,7 +88,7 @@ exports.allPostsGet = [
     const allPosts = await Post.find({
       "author.email": req.user.user.email,
     })
-      .sort({ isPublished: 1, createdAt: -1 })
+      .sort({ isPublished: -1, createdAt: -1 })
       .exec();
     res.status(200).json({
       message: "all admin posts",
