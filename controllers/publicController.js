@@ -110,7 +110,7 @@ exports.loginPost = [
     jwt.sign(
       { user },
       process.env.JWT_SECRET,
-      { expiresIn: 60 * 60 },
+      { expiresIn: 60 * 60 }, // 1 hr expiry
       (err, token) => {
         if (err) {
           return res.status(500).json({ error: err });
