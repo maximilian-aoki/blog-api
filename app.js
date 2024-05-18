@@ -4,6 +4,7 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const helmet = require("helmet");
 const db = require("./db/mongoose");
 
 const cors = require("cors");
@@ -18,6 +19,9 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+app.disable("x-powered-by");
+app.use(helmet());
 
 // setup CORS
 const whitelist = process.env.WHITELIST.split("&");
