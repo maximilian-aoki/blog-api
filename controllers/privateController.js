@@ -225,6 +225,7 @@ exports.onePostDelete = [
       return res.status(404).json({ error: "could not find resource" });
     }
 
+    await Comment.deleteMany({ post: post._id });
     await Post.deleteOne({ _id: post._id });
 
     res.status(200).json({
